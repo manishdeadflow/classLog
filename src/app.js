@@ -65,7 +65,7 @@ app.post("/student/joinClass", authStudent, async (req, res) => {
 
 app.patch("/parent/addStudent", authParent, async (req, res) => {
   try {
-    const student = await Student.findOne({id:req.body.id});
+    const student = await Student.findOne({email:req.body.email});
     if (!student) throw new Error("cant find the student with the given id!");
     student.parents = req.user._id;
     await student.save();
