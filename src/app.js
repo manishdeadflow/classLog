@@ -75,6 +75,28 @@ app.patch("/parent/addStudent", authTeacher, async (req, res) => {
   }
 });
 
+app.get("/teacher/courses", authTeacher, async (req, res) => {
+  try {
+    await req.user.populate({ path: "courses" });
+    res.status(200).send(req.user.courses);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+app.get("/student/courses", authStudent, async (req, res) => {
+  try {
+    const courses = await CourseStudent.find({
+      student: req.user._id,
+    }).populate("course");
+    res.status(200).send(temp);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+app.get("/parent/students", authParent, async (req, res) => {});
+
 app.post("/userLogin", async (req, res) => {
   const role = req.body.role;
   try {
