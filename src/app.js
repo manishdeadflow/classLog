@@ -63,9 +63,9 @@ app.post("/student/joinClass", authStudent, async (req, res) => {
   }
 });
 
-app.patch("/parent/addStudent", authTeacher, async (req, res) => {
+app.patch("/parent/addStudent", authParent, async (req, res) => {
   try {
-    const student = await Student.findOne(req.body.id);
+    const student = await Student.findOne({id:req.body.id});
     if (!student) throw new Error("cant find the student with the given id!");
     student.parents = req.user._id;
     await student.save();
@@ -95,7 +95,14 @@ app.get("/student/courses", authStudent, async (req, res) => {
   }
 });
 
-app.get("/parent/students", authParent, async (req, res) => {});
+app.get("/parent/students", authParent, async (req, res) => {
+  try {
+    await req.user.populate({ path: "students" });
+    res.status(200).send(req.user.students);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
 
 app.post("/userLogin", async (req, res) => {
   const role = req.body.role;
