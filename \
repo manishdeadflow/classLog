@@ -182,12 +182,12 @@ app.post(
 
 app.get("/courseData", async (req, res) => {
   try {
-    const course = await Course.findOne({ _id: req.body.id }).populate({path:'assigments'});
-    const students = await CourseStudent.find({
+    const course = await Course.findOne({ _id: req.body.id });
+    const student = await CourseStudent.find({
       course: req.body.id,
     }).populate("student");
-    // course.populate('assigments')
-    res.status(200).send({course,assigments:course.assigments,students})
+    await course.populate('assigments')
+    res.status(200).send({course.assigments,student})
   } catch (e) {
     res.status(400).send(e)
   }
