@@ -141,7 +141,7 @@ app.post("/userLogin", async (req, res) => {
 app.patch("/teacher/course/addNotes", authTeacher, async (req, res) => {
   try {
     const course = await Course.findOne({ _id: req.body.courseId });
-    course.notes = course.notes.concat({ notes: req.body.notes });
+    course.notes = course.notes.concat({notes:{name:req.body.note,link:req.body.link}});
     await course.save();
     res.status(201).send(course);
   } catch (e) {
@@ -152,6 +152,7 @@ app.patch("/teacher/course/addNotes", authTeacher, async (req, res) => {
 app.post("/teacher/course/addAssigment", authTeacher, async (req, res) => {
   try {
     const assigment = new Assigment({
+      name: req.body.name,
       link: req.body.link,
       course: req.body.courseId,
     });
@@ -180,11 +181,11 @@ app.post(
   }
 );
 
-app.get("/courseData", async (req, res) => {
+app.get("/courseData/:id", async (req, res) => {
   try {
-    const course = await Course.findOne({ _id: req.body.id }).populate({path:'assigments'});
+    const course = await Course.findOne({ _id: req.params['id'] }).populate({path:'assigments'});
     const students = await CourseStudent.find({
-      course: req.body.id,
+      course: req.params['id'],
     }).populate("student");
     // course.populate('assigments')
     res.status(200).send({course,assigments:course.assigments,students})

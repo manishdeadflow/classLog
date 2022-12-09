@@ -12,7 +12,8 @@ const courseSchema = new mongoose.Schema({
   notes:[
     {
       notes:{
-        type: String,
+        name:String,
+        link: String,
       }
     }
   ]
