@@ -108,6 +108,17 @@ app.get("/parent/students", authParent, async (req, res) => {
   }
 });
 
+app.get("/parent/student/:id",authParent,async (req,res) => {
+  try{
+     const courses = await CourseStudent.find({
+      student: req.params['id'],
+    }).populate("course");
+    res.status(200).send(courses);
+  }catch(e){
+    res.status(400).send(e)
+  }
+})
+
 app.post("/userLogin", async (req, res) => {
   const role = req.body.role;
   try {
