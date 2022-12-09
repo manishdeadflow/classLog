@@ -1,17 +1,21 @@
 const express = require("express");
 require("./db/mongoose.js");
+const cors = require('cors')
 const Teacher = require("./models/teacher.js");
 const Student = require("./models/student.js");
 const Parent = require("./models/parent.js");
 const Course = require("./models/course.js");
 const CourseStudent = require("./models/courseStudent.js");
+const Assigment = require("./models/assigment");
+const SolvedAssigment = require("./models/solvedAssigment");
 const authTeacher = require("./middleware/authTeacher");
 const authStudent = require("./middleware/authStudent");
 const authParent = require("./middleware/authParent");
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
+app.use(cors())
 app.use(express.json());
 
 app.post("/createUser", async (req, res) => {
@@ -23,17 +27,17 @@ app.post("/createUser", async (req, res) => {
       const user = new Teacher(userOb);
       await user.save();
       const token = await user.createToken();
-      res.status(201).send({ user, token });
+      res.status(201).send({ user, token ,role});
     } else if (role === "student") {
       const user = new Student(userOb);
       await user.save();
       const token = await user.createToken();
-      res.status(201).send({ user, token });
+      res.status(201).send({ user, token ,role});
     } else {
       const user = new Parent(userOb);
       await user.save();
       const token = await user.createToken();
-      res.status(201).send({ user, token });
+      res.status(201).send({ user, token ,role});
     }
   } catch (e) {
     res.status(400).send(e);
@@ -65,7 +69,7 @@ app.post("/student/joinClass", authStudent, async (req, res) => {
 
 app.patch("/parent/addStudent", authParent, async (req, res) => {
   try {
-    const student = await Student.findOne({email:req.body.email});
+    const student = await Student.findOne({ email: req.body.email });
     if (!student) throw new Error("cant find the student with the given id!");
     student.parents = req.user._id;
     await student.save();
@@ -89,7 +93,7 @@ app.get("/student/courses", authStudent, async (req, res) => {
     const courses = await CourseStudent.find({
       student: req.user._id,
     }).populate("course");
-    res.status(200).send(temp);
+    res.status(200).send(courses);
   } catch (e) {
     res.status(400).send(e);
   }
@@ -113,22 +117,60 @@ app.post("/userLogin", async (req, res) => {
         req.body.password
       );
       const token = await user.createToken();
-      res.status(200).send({ user, token });
+      res.status(200).send({ user, token ,role});
     } else if (role === "student") {
       const user = await Student.checkCredentials(
         req.body.email,
         req.body.password
       );
       const token = await user.createToken();
-      res.status(200).send({ user, token });
+      res.status(200).send({ user, token ,role});
     } else {
       const user = await Parent.checkCredentials(
         req.body.email,
         req.body.password
       );
       const token = await user.createToken();
-      res.status(200).send({ user, token });
+      res.status(200).send({ user, token ,role});
     }
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+app.patch("/teacher/course/addNotes", authTeacher, async (req, res) => {
+  try {
+    const course = await Course.findOne({ _id: req.body.courseId });
+    course.notes = course.notes.concat({ notes: req.body.notes });
+    await course.save();
+    res.status(201).send(course);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+app.post("/teacher/course/addAssigment", authTeacher, async (req, res) => {
+  try {
+    const assigment = new Assigment({
+      link: req.body.link,
+      course: req.body.courseId,
+    });
+    await assigment.save();
+    res.status(200).send(assigment);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+app.post("/student/course/addSolvedAssigment", authStudent, async (req, res) => {
+  try {
+    const assigment = new SolvedAssigment({
+      link: req.body.link,
+      course: req.body.courseId,
+      student:req.user._id
+    });
+    await assigment.save();
+    res.status(200).send(assigment);
   } catch (e) {
     res.status(400).send(e);
   }

@@ -11,6 +11,8 @@ const courseStudentSchema = new mongoose.Schema({
   }
 })
 
+courseStudentSchema.index({course:1,student:1},{unique:true})
+
 const CourseStudent = mongoose.model('CourseStudent',courseStudentSchema)
 
 module.exports = CourseStudent
